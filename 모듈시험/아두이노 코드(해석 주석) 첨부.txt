@@ -1,0 +1,66 @@
+// LED
+const int ledPin = 10; // LED와 연결된 핀 번호를 10번으로 설정
+char inputVal = 0; // 시리얼 입력 값을 저장할 변수 초기화
+
+// 온도
+float temp; // 온도 값을 저장할 변수 선언
+
+// 조도
+const int lightPin = A1; // 조도 센서와 A1번 핀을 연결
+
+// 초음파
+const int trig_pin = 11; // 초음파 센서의 Trig 핀과 11번 핀을 연결
+const int echo_pin = 12; // 초음파 센서의 Echo 핀과 12번 핀을 연결
+
+void setup() {
+  Serial.begin(9600); // 시리얼 통신 시작 9600bps로 (bps 는 1초당 몇 비트를 보낼 수 있는지에 대한 단위)
+  pinMode(ledPin, OUTPUT); // LED 핀을 출력 모드로 설정
+  // 초음파
+  pinMode(trig_pin, OUTPUT); // 초음파 센서의 Trig 핀을 출력 모드로 설정
+  pinMode(echo_pin, INPUT); // 초음파 센서의 Echo 핀을 입력 모드로 설정
+}
+
+void loop() {
+  if(Serial.available()){ // 시리얼 데이터를 사용할 수 있는지 확인
+   	inputVal = Serial.read(); // 시리얼 데이터를 읽고, inputVal 변수에 데이터 값을 저장
+    if(inputVal == '1'){ // 입력 값이 '1'이면
+      digitalWrite(ledPin, HIGH); // LED가 켜지고, 
+      Serial.print("LED:"); // 시리얼로 "LED:" 출력
+      Serial.print("ON"); // 시리얼로 "ON" 출력
+      Serial.print("_"); // 시리얼로 "_" 출력
+     }
+    else if(inputVal == '0'){ // 입력 값이 '0'이면
+      digitalWrite(ledPin, LOW); // LED가 꺼지고,
+      Serial.print("LED:"); // 시리얼로 "LED:" 출력
+      Serial.print("OFF"); // 시리얼로 "OFF" 출력
+      Serial.print("_"); // 시리얼로 "_" 출력
+    }
+  }
+  // 온도
+  int val = analogRead(A0); // A0 핀에서 아날로그 값을 읽고, val 변수에 데이터 값을 저장
+  temp = val * 0.48828125; // 읽은 값을 온도(섭씨)로 변환
+  Serial.print("TMP:"); // 시리얼로 "TMP:" 출력
+  Serial.print(temp); // 시리얼로 온도(섭씨) 값을 출력
+  Serial.print("_"); // 시리얼로 "_" 출력
+
+  // 조도
+  int lightValue = analogRead(lightPin); // 조도 센서에서 아날로그 값을 읽고, lightValue 변수에 데이터 값을 저장
+  Serial.print("LIGHT:"); // 시리얼로 "LIGHT:" 출력
+  Serial.print(lightValue); // 시리얼로 조도 값 출력
+  Serial.print("_"); // 시리얼로 "_" 출력
+
+  // 초음파
+  digitalWrite(trig_pin, LOW); // Trig 핀을 LOW로 설정하고, 값을 초기화
+  delayMicroseconds(2); // 2 마이크로초 대기
+  digitalWrite(trig_pin, HIGH); // Trig 핀을 HIGH로 설정하고, 초음파 신호 발사
+  delayMicroseconds(10); // 10 마이크로초 대기
+  digitalWrite(trig_pin, LOW); // Trig 핀을 다시 LOW로 설정하고, 신호 종료
+
+  long duration = pulseIn(echo_pin, HIGH); // Echo 핀에서 HIGH 신호가 돌아오는 시간을 측정하여 duration 변수에 데이터 값을 저장
+  long distance = (duration / 2) / 29.1; // 시간을 거리로 변환 (cm 단위로)
+
+  Serial.print("DIS:"); // 시리얼로 "DIS:" 출력
+  Serial.println(distance); // 시리얼로 cm단위로 변환 된 거리 값을 출력
+
+  delay(500); // 0.5초 대기
+}

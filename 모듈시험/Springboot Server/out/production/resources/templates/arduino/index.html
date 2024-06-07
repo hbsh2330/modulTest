@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>INDEX</h1>
+<div>
+    <fieldset style="width:250px;">
+        <legend>CONNECTION</legend>
+        <div style="display:flex;justify-content : space-between;">
+            <input class="com_port">
+            <button class="conn_btn">CONN</button>
+        </div>
+    </fieldset>
+    <fieldSet style="width:250px;">
+        <legend>LED</legend>
+        <div style="display:flex;justify-content:space-between;">
+            <button class="led_on">LED ON</button>
+            |
+            <button class="led_off">LED OFF</button>
+        </div>
+    </fieldSet>
+</div>
+<div style="display:flex;">
+    <fieldSet style="width:100px;">
+        <legend>LED상태</legend>
+        <span class="led_info"></span>
+    </fieldSet>
+    <fieldSet style="width:100px;">
+        <legend>온도센서</legend>
+        <span class="tmp_info"></span>
+    </fieldSet>
+    <fieldSet style="width:100px;">
+        <legend>조도센서</legend>
+        <span class="light_info"></span>
+    </fieldSet>
+    <fieldSet style="width:100px;">
+        <legend>초음파센서</legend>
+        <span class="distance_info"></span>
+    </fieldSet>
+</div>
+
+<!-- axios cdn -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js" integrity="sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+
+    const led_on_btn = document.querySelector('.led_on');
+    const led_off_btn = document.querySelector('.led_off');
+
+    const led_info_el = document.querySelector('.led_info');
+    const tmp_info_el = document.querySelector('.tmp_info');
+    const light_info_el = document.querySelector('.light_info');
+    const distance_info_el = document.querySelector('.distance_info');
+
+    const messageInterval=null;
+
+
+    const conn_btn = document.querySelector('.conn_btn');
+    conn_btn.addEventListener('click',function(){
+
+         const port = document.querySelector('.com_port').value;
+         axios.get(`/arduino/connection/${port}`)
+        .then(response=>{
+            console.log(response.status);
+            if(response.status == 200)
+            {
+                  if(messageInterval!=null){
+                    clearInterval(messageInterval); //기존 요청 반복 제거
+                  }
+                  //만약 연결에 성공했다면 요청
+                   messageInterval =  setInterval(()=>{
+                        req_led_info_func();
+                        req_tmp_info_func();
+                        req_light_info_func();
+                        req_distance_info_func();
+                    },1000);
+            }
+
+
+        })
+        .catch(error=>{});
+
+    });
+
+
+    led_on_btn.addEventListener('click',function(){
+
+        axios.get('/arduino/led/1')
+        .then(response=>{})
+        .catch(error=>{});
+
+    });
+    led_off_btn.addEventListener('click',function(){
+        axios.get('/arduino/led/0')
+        .then(response=>{})
+        .catch(error=>{});
+    });
+
+    //----------------------------------------------------------------
+    // Message Received Interval Function
+    //----------------------------------------------------------------
+    //1초마다 반복요청
+    const req_led_info_func = ()=>{
+        axios.get('/arduino/message/led')
+        .then(response=>{
+            led_info_el.innerHTML =  response.data;
+        })
+        .catch(error=>{});
+    }
+    const req_tmp_info_func = ()=>{
+        axios.get('/arduino/message/tmp')
+        .then(response=>{
+            tmp_info_el.innerHTML =  response.data;
+        })
+        .catch(error=>{});
+    }
+    const req_light_info_func = ()=>{
+        axios.get('/arduino/message/light')
+        .then(response=>{
+            light_info_el.innerHTML =  response.data;
+        })
+        .catch(error=>{});
+    }
+    const req_distance_info_func = ()=>{
+        axios.get('/arduino/message/distance')
+        .then(response=>{
+            distance_info_el.innerHTML =  response.data;
+        })
+        .catch(error=>{});
+    }
+
+</script>
+
+</body>
+</html>
